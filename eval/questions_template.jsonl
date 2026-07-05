@@ -1,0 +1,3 @@
+{"book": "prestuplenie_i_nakazanie", "type": "factual", "question": "Кому Раскольников первому признался в убийстве?", "reference_answer": "Соне Мармеладовой", "reference_location": "часть 5, глава 4"}
+{"book": "besy", "type": "factual", "question": "Кто убил Шатова?", "reference_answer": "Группа Петра Верховенского", "reference_location": "часть 3, глава 6"}
+{"book": "faust_holodkovsky", "type": "quote", "question": "Как Мефистофель определяет себя при знакомстве с Фаустом?", "reference_answer": "Как часть силы, что вечно хочет зла и вечно совершает благо", "reference_location": "часть 1, сцена 3"}

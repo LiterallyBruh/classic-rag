@@ -1,0 +1,43 @@
+[project]
+name = "classic-rag"
+version = "0.1.0"
+description = "RAG-ассистент по классической литературе с точным цитированием"
+requires-python = ">=3.11"
+dependencies = [
+    "requests>=2.31",
+    "beautifulsoup4>=4.12",
+    "lxml>=5.0",
+    "pydantic>=2.5",
+    "pyyaml>=6.0",
+    "rank-bm25>=0.2.2",
+    "sentence-transformers>=3.0",
+    "qdrant-client>=1.9",
+    "razdel>=0.5",           # токенизация/сегментация русского текста
+    "streamlit>=1.35",
+    "openai>=1.30",          # совместимо с большинством LLM-эндпоинтов
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "pytest-cov>=5.0",
+    "ruff>=0.4",
+    "mypy>=1.10",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
