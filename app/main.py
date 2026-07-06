@@ -1,8 +1,15 @@
-"""Streamlit-демо ClassicRAG."""
+"""Streamlit-демо ClassicRAG.
+
+Работает и без LLM-ключа: тогда показывает найденные фрагменты с адресами,
+а генерация ответа отключена (полезно для проверки retrieval и деплоя
+без секретов).
+"""
+
+import os
 
 import streamlit as st
 
-from classic_rag.pipeline import RagPipeline
+from classic_rag.pipeline import DEFAULT_INDEX, RagPipeline
 
 BOOKS = {
     "Все книги": None,
@@ -12,24 +19,68 @@ BOOKS = {
     "Фауст (пер. Холодковского)": "faust_holodkovsky",
 }
 
+EXAMPLES = [
+    "Почему Раскольников признался Соне?",
+    "Что Мефистофель говорит о теории?",
+    "Кто такая Хромоножка?",
+    "Правда ли, что «красота спасёт мир» — слова Мышкина?",
+]
+
 st.set_page_config(page_title="ClassicRAG", page_icon="📚")
 st.title("📚 ClassicRAG")
 st.caption("Ответы по тексту классики — с цитатами и указанием главы. Без выдумок.")
 
 
-@st.cache_resource
+def llm_available() -> bool:
+    return bool(os.getenv("LLM_API_KEY"))
+
+
+@st.cache_resource(show_spinner="Загружаю индекс и модели (первый запуск — до минуты)...")
 def load_pipeline() -> RagPipeline:
+    if not (DEFAULT_INDEX / "chunks.jsonl").exists():
+        st.error(
+            "Индекс не найден. Постройте его: `python scripts/bootstrap.py` "
+            "(скачает тексты и создаст data/index/window)."
+        )
+        st.stop()
     return RagPipeline.from_index()
 
 
-book_label = st.selectbox("Произведение", list(BOOKS))
-query = st.text_input("Вопрос", placeholder="Почему Родя признался Соне?")
+with st.sidebar:
+    book_label = st.selectbox("Произведение", list(BOOKS))
+    st.markdown("**Примеры вопросов**")
+    for ex in EXAMPLES:
+        if st.button(ex, use_container_width=True):
+            st.session_state["query"] = ex
+    if not llm_available():
+        st.info(
+            "LLM-ключ не задан (.env) — показываю только найденные "
+            "фрагменты, без генерации ответа."
+        )
+
+query = st.text_input(
+    "Вопрос", key="query", placeholder="Почему Родя признался Соне?"
+)
 
 if query:
     pipeline = load_pipeline()
-    with st.spinner("Ищу в тексте..."):
-        result = pipeline.ask(query, book=BOOKS[book_label])
-    st.markdown(result.answer)
-    with st.expander("Найденные фрагменты"):
-        for c in result.chunks:
-            st.markdown(f"**{c.citation}**\n\n{c.text[:600]}…")
+    if llm_available():
+        with st.spinner("Ищу в тексте и формулирую ответ..."):
+            result = pipeline.ask(query, book=BOOKS[book_label])
+        st.markdown(result.answer)
+        chunks = result.chunks
+    else:
+        with st.spinner("Ищу в тексте..."):
+            chunks = pipeline.retrieve(query, book=BOOKS[book_label])
+    st.subheader("Найденные фрагменты")
+    for c in chunks:
+        with st.expander(c.citation):
+            st.markdown(c.text)
+
+st.divider()
+st.caption(
+    "Корпус: Достоевский («Преступление и наказание», «Идиот», «Бесы») и "
+    "«Фауст» в переводе Н. Холодковского — тексты в общественном достоянии. "
+    "Ассистент отвечает только по первоисточнику и отказывается, если ответа "
+    "в тексте нет."
+)
