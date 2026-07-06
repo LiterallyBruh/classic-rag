@@ -26,10 +26,12 @@ Scorer = Callable[[str, list[str]], list[float]]
 def _default_scorer() -> Scorer:
     from sentence_transformers import CrossEncoder  # тяжёлый импорт — лениво
 
-    model = CrossEncoder(RERANK_MODEL)
+    # max_length ограничивает память: чанки-«главы» достигают 15 тыс. слов,
+    # без лимита внимание на 30 парах выедает всю память GPU/MPS.
+    model = CrossEncoder(RERANK_MODEL, max_length=1024)
 
     def score(query: str, texts: list[str]) -> list[float]:
-        return model.predict([(query, t) for t in texts]).tolist()
+        return model.predict([(query, t) for t in texts], batch_size=8).tolist()
 
     return score
 

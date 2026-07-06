@@ -232,11 +232,12 @@ def _is_caps(s: str) -> bool:
 def _is_speaker(s: str) -> bool:
     """Имя говорящего: коротко, с заглавной, без конечной пунктуации.
 
-    Отсекает строки стиха с большим отступом (песни, выравнивание) и
-    центрированные ремарки — те начинаются со скобки или кончаются знаком
-    препинания («Маргарита под руку с Фаустом,»).
+    Отсекает строки стиха с большим отступом (песни, выравнивание,
+    выделенное первое слово реплики вроде одиночного «Я») и центрированные
+    ремарки — те начинаются со скобки или кончаются знаком препинания
+    («Маргарита под руку с Фаустом,»).
     """
-    if not s or s.startswith("(") or len(s) > _MAX_SPEAKER_LEN:
+    if len(s) < 3 or s.startswith("(") or len(s) > _MAX_SPEAKER_LEN:
         return False
     if not s[0].isupper() or len(s.split()) > 4:
         return False
@@ -248,6 +249,7 @@ def parse_faust(raw_html: str, book: str) -> list[dict]:
     part: str | None = None
     scene: str | None = None
     speaker: str | None = None
+    prev_scene_line = False  # предыдущая строка была заголовком сцены
     buf: list[str] = []
 
     def flush() -> None:
@@ -282,12 +284,20 @@ def parse_faust(raw_html: str, book: str) -> list[dict]:
             n = ordinal_to_int(pm.group(1))
             part, scene, speaker = (str(n) if n else pm.group(1)), None, None
             continue
-        if indent >= _HEADER_INDENT and _is_caps(stripped):
+        if indent >= _HEADER_INDENT and _is_caps(stripped) and len(stripped) >= 3:
             if stripped.rstrip(":").casefold() == "примечания":
                 break  # дальше — комментарии издания, не текст Гёте
-            flush()
-            scene, speaker = stripped.rstrip(". "), None
+            title = stripped.rstrip(". ")
+            # заголовок сцены может занимать две строки подряд
+            # («МЕСТНОСТЬ ПЕРЕД ДВОРЦОМ» / «МЕНЕЛАЯ В СПАРТЕ»)
+            if prev_scene_line and scene is not None:
+                scene = f"{scene} {title}"
+            else:
+                flush()
+                scene, speaker = title, None
+            prev_scene_line = True
             continue
+        prev_scene_line = False
         if indent >= _HEADER_INDENT and _is_speaker(stripped):
             flush()
             speaker = stripped
