@@ -5,11 +5,13 @@
 без секретов).
 """
 
-import os
-
 import streamlit as st
+from dotenv import load_dotenv
 
+from classic_rag.llm import llm_configured
 from classic_rag.pipeline import DEFAULT_INDEX, RagPipeline
+
+load_dotenv()  # локальный запуск без docker: ключи из .env
 
 BOOKS = {
     "Все книги": None,
@@ -31,10 +33,6 @@ st.title("📚 ClassicRAG")
 st.caption("Ответы по тексту классики — с цитатами и указанием главы. Без выдумок.")
 
 
-def llm_available() -> bool:
-    return bool(os.getenv("LLM_API_KEY"))
-
-
 @st.cache_resource(show_spinner="Загружаю индекс и модели (первый запуск — до минуты)...")
 def load_pipeline() -> RagPipeline:
     if not (DEFAULT_INDEX / "chunks.jsonl").exists():
@@ -52,7 +50,7 @@ with st.sidebar:
     for ex in EXAMPLES:
         if st.button(ex, use_container_width=True):
             st.session_state["query"] = ex
-    if not llm_available():
+    if not llm_configured():
         st.info(
             "LLM-ключ не задан (.env) — показываю только найденные "
             "фрагменты, без генерации ответа."
@@ -64,7 +62,7 @@ query = st.text_input(
 
 if query:
     pipeline = load_pipeline()
-    if llm_available():
+    if llm_configured():
         with st.spinner("Ищу в тексте и формулирую ответ..."):
             result = pipeline.ask(query, book=BOOKS[book_label])
         st.markdown(result.answer)

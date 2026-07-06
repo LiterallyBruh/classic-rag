@@ -8,9 +8,8 @@
 
 from __future__ import annotations
 
-import os
-
 from .chunking import Chunk
+from .llm import default_model, make_client
 
 REFUSAL = "В предоставленных фрагментах текста ответа нет."
 
@@ -38,14 +37,9 @@ def answer(query: str, chunks: list[Chunk], model: str | None = None, client=Non
     if not chunks:
         return REFUSAL
     if client is None:
-        from openai import OpenAI  # ленивый импорт: тесты не требуют ключей
-
-        client = OpenAI(
-            base_url=os.getenv("LLM_BASE_URL"),
-            api_key=os.getenv("LLM_API_KEY"),
-        )
+        client = make_client()
     resp = client.chat.completions.create(
-        model=model or os.getenv("LLM_MODEL", "gpt-4o-mini"),
+        model=model or default_model(),
         temperature=0.1,
         messages=[
             {"role": "system", "content": SYSTEM_PROMPT},

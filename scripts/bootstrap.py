@@ -29,13 +29,18 @@ def main() -> None:
     ap.add_argument("--strategy", default="window")
     args = ap.parse_args()
 
+    index_dir = INDEX / args.strategy
+    # retrieval'у нужен только индекс (chunks.jsonl + embeddings.npy) —
+    # если он уже есть (напр., доставлен в репозитории HF Space),
+    # корпус не скачиваем вовсе
+    if (index_dir / "embeddings.npy").exists() and (index_dir / "chunks.jsonl").exists():
+        print("[bootstrap] индекс уже есть, пропускаю", flush=True)
+        return
     if len(list(RAW.glob("*.html"))) < N_BOOKS:
         run("scripts/download_texts.py")
     if len(list(PROCESSED.glob("*.jsonl"))) < N_BOOKS:
         run("scripts/clean_texts.py")
-    index_dir = INDEX / args.strategy
-    if not (index_dir / "embeddings.npy").exists():
-        run("scripts/build_index.py", "--strategy", args.strategy)
+    run("scripts/build_index.py", "--strategy", args.strategy)
     print("[bootstrap] готово", flush=True)
 
 
