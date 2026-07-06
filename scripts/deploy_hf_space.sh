@@ -26,14 +26,14 @@ trap 'rm -rf "$WORK"' EXIT
 [[ -f "$ROOT/data/index/window/embeddings.npy" ]] \
     || { echo "Индекс не собран: python scripts/bootstrap.py" >&2; exit 1; }
 
-AUTH_URL="${SPACE_URL/https:\/\//https:\/\/user:${HF_TOKEN}@}"
+AUTH_URL="$(printf '%s' "$SPACE_URL" | sed "s|^https://|https://user:${HF_TOKEN}@|")"
 git clone --depth 1 "$AUTH_URL" "$WORK/space"
 
 cd "$WORK/space"
 git lfs install --local
 
 # --- содержимое из основного репо ---------------------------------------
-rsync -a --delete --exclude ".git" --exclude "__pycache__" \
+rsync -a --delete --exclude ".git" --exclude "__pycache__" --exclude "*.egg-info" \
     "$ROOT/src" "$ROOT/app" "$ROOT/scripts" "$ROOT/configs" ./
 cp "$ROOT/pyproject.toml" ./
 mkdir -p data/index
