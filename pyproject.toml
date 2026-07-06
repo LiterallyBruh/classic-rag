@@ -23,6 +23,11 @@ dev = [
     "pytest-cov>=5.0",
     "ruff>=0.4",
     "mypy>=1.10",
+    # EDA-ноутбук
+    "pandas>=2.2",
+    "matplotlib>=3.8",
+    "ipykernel>=6.29",
+    "nbconvert>=7.16",
 ]
 
 [tool.ruff]
