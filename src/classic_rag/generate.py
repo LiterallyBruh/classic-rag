@@ -10,17 +10,18 @@ from __future__ import annotations
 
 import os
 
-from openai import OpenAI
+from .chunking import Chunk
 
-from .retrieval import Chunk
+REFUSAL = "В предоставленных фрагментах текста ответа нет."
 
-SYSTEM_PROMPT = """Ты — ассистент по классической литературе.
+SYSTEM_PROMPT = f"""Ты — ассистент по классической литературе.
 Отвечай ТОЛЬКО на основе приведённых фрагментов текста.
 Правила:
 1. Каждое утверждение подкрепляй короткой цитатой из фрагмента
-   и ссылкой вида [часть N, глава M].
+   и ссылкой на его адрес в круглых скобках, например
+   (Преступление и наказание, часть 5, глава 4).
 2. Если фрагменты не содержат ответа, скажи ровно:
-   «В предоставленных фрагментах текста ответа нет.»
+   «{REFUSAL}»
 3. Не используй знания о произведении помимо фрагментов.
 4. Цитаты — не длиннее одного предложения."""
 
@@ -32,11 +33,17 @@ def build_context(chunks: list[Chunk]) -> str:
     return "\n\n".join(blocks)
 
 
-def answer(query: str, chunks: list[Chunk], model: str | None = None) -> str:
-    client = OpenAI(  # совместимо с любым OpenAI-compatible эндпоинтом
-        base_url=os.getenv("LLM_BASE_URL"),
-        api_key=os.getenv("LLM_API_KEY"),
-    )
+def answer(query: str, chunks: list[Chunk], model: str | None = None, client=None) -> str:
+    """client — любой OpenAI-совместимый клиент; инъецируется в тестах."""
+    if not chunks:
+        return REFUSAL
+    if client is None:
+        from openai import OpenAI  # ленивый импорт: тесты не требуют ключей
+
+        client = OpenAI(
+            base_url=os.getenv("LLM_BASE_URL"),
+            api_key=os.getenv("LLM_API_KEY"),
+        )
     resp = client.chat.completions.create(
         model=model or os.getenv("LLM_MODEL", "gpt-4o-mini"),
         temperature=0.1,
