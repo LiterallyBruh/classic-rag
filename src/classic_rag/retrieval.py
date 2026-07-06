@@ -115,6 +115,16 @@ class HybridRetriever:
             order = [i for i in order if self.chunks[i].book == book]
         return [self.chunks[i] for i in order[:k]]
 
+    def book_slice(self, book: str, where: str, k: int) -> list[Chunk]:
+        """Голова ('head') или хвост ('tail') книги в порядке повествования.
+
+        Опирается на то, что build_index пишет чанки последовательно
+        по тексту — порядок в chunks.jsonl и есть порядок повествования.
+        """
+        ids = [i for i, c in enumerate(self.chunks) if c.book == book]
+        picked = ids[:k] if where == "head" else ids[-k:]
+        return [self.chunks[i] for i in picked]
+
     def _rank_bm25(self, query: str, depth: int = 50) -> list[int]:
         scores = self._bm25.get_scores(bm25_tokens(query))
         return sorted(range(len(scores)), key=scores.__getitem__, reverse=True)[:depth]

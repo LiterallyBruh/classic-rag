@@ -32,18 +32,29 @@ def build_context(chunks: list[Chunk]) -> str:
     return "\n\n".join(blocks)
 
 
-def answer(query: str, chunks: list[Chunk], model: str | None = None, client=None) -> str:
-    """client — любой OpenAI-совместимый клиент; инъецируется в тестах."""
+def answer(
+    query: str,
+    chunks: list[Chunk],
+    model: str | None = None,
+    client=None,
+    note: str | None = None,
+) -> str:
+    """client — любой OpenAI-совместимый клиент; инъецируется в тестах.
+
+    note — факт о фрагментах, известный пайплайну, но не видный из их текста
+    (например, «это самый конец книги» для структурных вопросов, D-011).
+    """
     if not chunks:
         return REFUSAL
     if client is None:
         client = make_client()
+    prefix = f"{note}\n\n" if note else ""
     resp = client.chat.completions.create(
         model=model or default_model(),
         temperature=0.1,
         messages=[
             {"role": "system", "content": SYSTEM_PROMPT},
-            {"role": "user", "content": f"{build_context(chunks)}\n\nВопрос: {query}"},
+            {"role": "user", "content": f"{prefix}{build_context(chunks)}\n\nВопрос: {query}"},
         ],
     )
     return resp.choices[0].message.content or ""
