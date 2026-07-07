@@ -214,6 +214,13 @@ def _pct(hits: list[bool | None]) -> str:
     return f"{sum(known)}/{len(known)}" if known else "—"
 
 
+def _fabricated(scores: list[dict]) -> str:
+    """Ответы, где есть закавыченная «цитата», не найденная в тексте дословно.
+    Знаменатель — все вопросы: метрика сопоставима между системами."""
+    bad = sum(s["has_quote"] and s["quote_verbatim"] is False for s in scores)
+    return f"{bad}/{len(scores)}"
+
+
 def write_report(rows: list, out: Path, model: str) -> None:
     base_scores = [b for _, b, _ in rows]
     rag_scores = [r for _, _, r in rows]
@@ -241,8 +248,10 @@ def write_report(rows: list, out: Path, model: str) -> None:
         "",
         "| Метрика | LLM без RAG | ClassicLiteratureRAG |",
         "|---|---|---|",
-        f"| Цитаты дословно из текста | {agg(base_scores, 'quote_verbatim')} "
+        f"| Цитаты дословно из текста* | {agg(base_scores, 'quote_verbatim')} "
         f"| {agg(rag_scores, 'quote_verbatim')} |",
+        f"| Ответы с выдуманной цитатой | {_fabricated(base_scores)} "
+        f"| {_fabricated(rag_scores)} |",
         f"| Ответ верен по сути | {agg(base_scores, 'gold_hit')} "
         f"| {agg(rag_scores, 'gold_hit')} |",
         f"| — среди данных ответов (без отказов) | "
@@ -254,6 +263,11 @@ def write_report(rows: list, out: Path, model: str) -> None:
         f"| {sum(s['refused'] for s in rag_scores)}/{len(rag_scores)} |",
         f"| Цензурные отказы GigaChat | {sum(s['censored'] for s in base_scores)}"
         f"/{len(base_scores)} | {sum(s['censored'] for s in rag_scores)}/{len(rag_scores)} |",
+        "",
+        "\\* знаменатель — ответы, в которых есть закавыченные цитаты (от 4 слов):",
+        "baseline «цитирует» почти всегда, ClassicLiteratureRAG — только когда",
+        "во фрагментах есть опора; поэтому строкой ниже та же разница дана",
+        "с общим знаменателем — доля ответов с выдуманной цитатой.",
         "",
         "## По вопросам",
         "",
