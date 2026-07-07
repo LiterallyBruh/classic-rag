@@ -116,9 +116,9 @@ def score(answer: str, q: dict, book_text: str) -> dict:
     spans = quoted_spans(answer)
     verbatim = all(normalize(s) in book_text for s in spans) if spans else None
     censored = "языковые модели не обладают" in answer.lower()
-    # существо ответа: >=половины лемм эталонного ответа присутствуют
-    # (леммы, а не слова: «погиб»/«погибает», «Соне»/«Соня» — совпадения);
-    # отказ любой природы существом ответа не считается
+    # верность ответа по сути: >=половины лемм эталонного ответа присутствуют
+    # (леммы, а не слова: «Соне»/«Соня» — совпадение);
+    # отказ любой природы верным ответом не считается
     ref = lemmas(q["reference_answer"])
     gold = (
         not (refused or censored)
@@ -243,7 +243,7 @@ def write_report(rows: list, out: Path, model: str) -> None:
         "|---|---|---|",
         f"| Цитаты дословно из текста | {agg(base_scores, 'quote_verbatim')} "
         f"| {agg(rag_scores, 'quote_verbatim')} |",
-        f"| Существо ответа верно | {agg(base_scores, 'gold_hit')} "
+        f"| Ответ верен по сути | {agg(base_scores, 'gold_hit')} "
         f"| {agg(rag_scores, 'gold_hit')} |",
         f"| — среди данных ответов (без отказов) | "
         f"{_pct([s['gold_hit'] for s in base_scores if not (s['refused'] or s['censored'])])} | "
@@ -257,7 +257,7 @@ def write_report(rows: list, out: Path, model: str) -> None:
         "",
         "## По вопросам",
         "",
-        "| Вопрос | Тип | Цитата дословна (base/RAG) | Существо (base/RAG) |",
+        "| Вопрос | Тип | Цитата дословна (base/RAG) | По сути (base/RAG) |",
         "|---|---|---|---|",
     ]
 
