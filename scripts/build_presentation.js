@@ -204,14 +204,53 @@ const shadow = () => ({ type: "outer", color: "000000", blur: 7, offset: 2, angl
   ], { x: 0.5, y: 1.15, w: 9.0, colW: [4.0, 2.3, 2.7], fontSize: 13, color: INK,
        border: { pt: 0.5, color: "D8CFC4" }, align: "center",
        margin: [0.05, 0.06, 0.05, 0.06] });
-  s.addText([
-    { text: "По существу — сопоставимо. Разница в другом: наш ответ ", options: {} },
-    { text: "проверяем", options: { bold: true, color: BERRY } },
-    { text: " — цитата дословна, адрес верен. Метрики автоматические (дословность по корпусу, леммная сверка, номер главы), сырые ответы сохранены для аудита, прогон воспроизводим.", options: {} },
-  ], { x: 0.5, y: 3.75, w: 9, h: 1.3, fontSize: 14, color: INK });
+  s.addText("Из чего состоят те же 29 ответов:", { x: 0.5, y: 3.62, w: 9, h: 0.35, fontSize: 13.5, bold: true, color: INK, margin: 0 });
+  const U = 7.0 / 29, BX = 2.3, BH = 0.42;
+  const seg = (x, y, n, color, label, labelColor) => {
+    s.addShape(p.shapes.RECTANGLE, { x, y, w: n * U, h: BH, fill: { color }, line: { color: WHITE, width: 0.75 } });
+    if (label) s.addText(label, { x, y, w: n * U, h: BH, align: "center", valign: "middle", fontSize: 10.5, bold: true, color: labelColor, margin: 0 });
+    return x + n * U;
+  };
+  s.addText("LLM без RAG", { x: 0.5, y: 4.02, w: 1.7, h: 0.4, fontSize: 12, bold: true, color: INK, valign: "middle", margin: 0 });
+  let bx = seg(BX, 4.0, 27, BAD, "27 ответов с «цитатой» — все 27 выдуманы", WHITE);
+  bx = seg(bx, 4.0, 2, "C9BFB4", null);
+  s.addText("2 без цитат", { x: bx - 2 * U - 0.55, y: 4.44, w: 1.6, h: 0.25, fontSize: 9, color: MUT, align: "right", margin: 0 });
+  s.addText("ClassicLiteratureRAG", { x: 0.5, y: 4.82, w: 1.8, h: 0.4, fontSize: 12, bold: true, color: INK, valign: "middle", margin: 0 });
+  bx = seg(BX, 4.8, 8, OK, "8 дословных", WHITE);
+  const redX = bx;
+  bx = seg(bx, 4.8, 1, BAD, null);
+  bx = seg(bx, 4.8, 9, "C9BFB4", "9 без цитат", INK);
+  bx = seg(bx, 4.8, 9, "E5DED4", "9 отказов", MUT);
+  const ambX = bx;
+  bx = seg(bx, 4.8, 2, "EF9F27", null);
+  s.addText("1 сжатая цитата", { x: redX - 0.55, y: 5.24, w: 1.35, h: 0.25, fontSize: 9, color: BAD, margin: 0 });
+  s.addText("2 цензуры GigaChat", { x: ambX - 1.0, y: 5.24, w: 1.5, h: 0.25, fontSize: 9, color: MUT, align: "right", margin: 0 });
   s.addNotes("Оценка импакта — измерение, а не опрос: тот же GigaChat с RAG и без на одних вопросах. Baseline вставил выдуманную цитату в 27 ответов из 29, у нас — один такой случай (сжатая цитата), и метрика его поймала. Знаменатели у строки «дословно» разные, потому что baseline «цитирует» всегда, а RAG — только при опоре на текст; поэтому первая строка приводит ту же разницу к общему знаменателю. Все метрики автоматические, сырые ответы сохранены — любую цифру можно проверить в репозитории.");
 
-  // ── 8. Инженерия, продукт, AI ───────────────────────────────────────────
+  // ── 8. Живой пример из прогона ──────────────────────────────────────────
+  s = p.addSlide(); s.background = { color: WHITE };
+  title(s, "Тот же вопрос — два ответа (из прогона, без правок)");
+  s.addText("«Кто говорит „Если нет бога, то я бог“?» — эталон: Кириллов, часть 3, глава 6", {
+    x: 0.5, y: 0.95, w: 9, h: 0.4, fontSize: 14, italic: true, color: MUT, margin: 0 });
+  s.addShape(p.shapes.ROUNDED_RECTANGLE, { x: 0.5, y: 1.5, w: 4.42, h: 2.5, rectRadius: 0.09, fill: { color: "F3E9E9" }, shadow: shadow() });
+  s.addText("LLM без RAG", { x: 0.75, y: 1.68, w: 3.9, h: 0.35, fontSize: 13.5, bold: true, color: BAD, margin: 0 });
+  s.addText("«Эти слова произносит Ставрогин. Цитата: „— Если нет Бога, то я Бог! — вдруг крикнул он громко и с восторгом“. Часть I, глава 1.»", {
+    x: 0.75, y: 2.1, w: 3.9, h: 1.75, fontSize: 12.5, color: INK, margin: 0 });
+  s.addShape(p.shapes.ROUNDED_RECTANGLE, { x: 5.08, y: 1.5, w: 4.42, h: 2.5, rectRadius: 0.09, fill: { color: "EBF1E4" }, shadow: shadow() });
+  s.addText("ClassicLiteratureRAG", { x: 5.33, y: 1.68, w: 3.9, h: 0.35, fontSize: 13.5, bold: true, color: OK, margin: 0 });
+  s.addText("«„Если нет бога, то я бог“ говорит Кириллов (Бесы, часть 3, глава 6 „Многотрудная ночь“, раздел 2)»", {
+    x: 5.33, y: 2.1, w: 3.9, h: 1.75, fontSize: 12.5, color: INK, margin: 0 });
+  const verdict = (x, ic, t, col) => {
+    s.addImage({ data: icons[ic], x, y: 4.25, w: 0.3, h: 0.3 });
+    s.addText(t, { x: x + 0.4, y: 4.16, w: 4.0, h: 0.5, fontSize: 11.5, color: col, margin: 0 });
+  };
+  verdict(0.55, "no", "герой не тот · такой цитаты в романе нет · «часть I, глава 1» — мимо", BAD);
+  verdict(5.13, "ok", "герой верен · цитата дословна · адрес совпал с золотой разметкой", OK);
+  s.addText("Ответы взяты из eval/baseline_raw.json как есть — каждый можно перепроверить в репозитории.", {
+    x: 0.5, y: 4.95, w: 9, h: 0.35, fontSize: 11, italic: true, color: MUT, margin: 0 });
+  s.addNotes("Один живой пример вместо тысячи цифр. Вопрос из нашего eval-набора, ответы без правок. Baseline уверенно называет Ставрогина, сочиняет цитату с восклицанием и даёт несуществующий адрес — красиво, но всё неправда, и школьник это не распознает. Наша система: Кириллов, дословная цитата, точный адрес вплоть до раздела. Проверяемость — это и есть продукт.");
+
+  // ── 9. Инженерия, продукт, AI ───────────────────────────────────────────
   s = p.addSlide(); s.background = { color: WHITE };
   title(s, "Инженерия, продукт и AI-инструменты");
   const card = (x, y, w, h, ic, head, items) => {
