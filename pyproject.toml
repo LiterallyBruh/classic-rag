@@ -30,6 +30,8 @@ dev = [
     "matplotlib>=3.8",
     "ipykernel>=6.29",
     "nbconvert>=7.16",
+    # eval/compare_baseline.py: сверка ответов с эталоном по леммам
+    "pymorphy3>=2.0",
 ]
 
 [tool.ruff]
