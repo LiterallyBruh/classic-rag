@@ -8,6 +8,7 @@
 import streamlit as st
 from dotenv import load_dotenv
 
+from classic_rag.feedback import save_feedback
 from classic_rag.llm import llm_configured
 from classic_rag.pipeline import DEFAULT_INDEX, RagPipeline
 
@@ -62,18 +63,50 @@ query = st.text_input(
 
 if query:
     pipeline = load_pipeline()
-    if llm_configured():
-        with st.spinner("Ищу в тексте и формулирую ответ..."):
-            result = pipeline.ask(query, book=BOOKS[book_label])
-        st.markdown(result.answer)
-        chunks = result.chunks
-    else:
-        with st.spinner("Ищу в тексте..."):
-            chunks = pipeline.retrieve(query, book=BOOKS[book_label])
+    # ответ кэшируется в сессии: клики по кнопкам фидбека перезапускают
+    # скрипт, и без кэша каждый клик заново гонял бы retrieval и LLM
+    if st.session_state.get("last_key") != (query, book_label):
+        if llm_configured():
+            with st.spinner("Ищу в тексте и формулирую ответ..."):
+                result = pipeline.ask(query, book=BOOKS[book_label])
+            answer, chunks = result.answer, result.chunks
+        else:
+            with st.spinner("Ищу в тексте..."):
+                answer, chunks = None, pipeline.retrieve(query, book=BOOKS[book_label])
+        st.session_state.update(
+            last_key=(query, book_label), last_answer=answer,
+            last_chunks=chunks, feedback_sent=False,
+        )
+    answer, chunks = st.session_state["last_answer"], st.session_state["last_chunks"]
+    if answer:
+        st.markdown(answer)
     st.subheader("Найденные фрагменты")
     for c in chunks:
         with st.expander(c.citation):
             st.markdown(c.text)
+
+    if st.session_state.get("feedback_sent"):
+        st.success("Спасибо! Отзыв записан.")
+    else:
+        with st.form("feedback_form", border=False):
+            col_rate, col_comment = st.columns([1, 3])
+            rating = col_rate.radio(
+                "Ответ помог?", ["👍 Да", "👎 Нет"], horizontal=True
+            )
+            comment = col_comment.text_input(
+                "Комментарий (необязательно)", placeholder="Что не так или чего не хватило?"
+            )
+            if st.form_submit_button("Отправить отзыв"):
+                save_feedback({
+                    "query": query,
+                    "book": BOOKS[book_label],
+                    "answer": answer,
+                    "citations": [c.citation for c in chunks],
+                    "rating": "up" if rating.startswith("👍") else "down",
+                    "comment": comment.strip(),
+                })
+                st.session_state["feedback_sent"] = True
+                st.rerun()
 
 st.divider()
 st.caption(
