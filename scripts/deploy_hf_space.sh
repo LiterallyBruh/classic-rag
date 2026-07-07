@@ -50,7 +50,7 @@ EOF
 
 cat > README.md <<'EOF'
 ---
-title: ClassicRAG
+title: ClassicLiteratureRAG
 emoji: 📚
 colorFrom: indigo
 colorTo: yellow
@@ -59,7 +59,7 @@ app_port: 8501
 pinned: false
 ---
 
-# 📚 ClassicRAG
+# 📚 ClassicLiteratureRAG
 
 Вопросно-ответная система по русской и мировой классике: отвечает **только
 по тексту первоисточника**, с цитатами и указанием части/главы.

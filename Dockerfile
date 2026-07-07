@@ -1,4 +1,4 @@
-# Демо ClassicRAG: Streamlit + гибридный retrieval.
+# Демо ClassicLiteratureRAG: Streamlit + гибридный retrieval.
 # Корпус и индекс не запекаются в образ (data/ вне git и вне контекста
 # сборки) — scripts/bootstrap.py строит их при первом старте, дальше
 # они живут в volume (см. docker-compose.yml).
