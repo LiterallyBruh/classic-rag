@@ -26,7 +26,7 @@ docker compose up --build
 
    ```yaml
    ---
-   title: ClassicRAG
+   title: ClassicLiteratureRAG
    emoji: "📚"
    sdk: docker
    app_port: 7860

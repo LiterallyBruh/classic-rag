@@ -30,7 +30,7 @@ SOURCES: dict[str, str] = {
     "faust_holodkovsky": "http://az.lib.ru/g/gete_i_w/text_1800_faust.shtml",
 }
 
-HEADERS = {"User-Agent": "ClassicRAG research project (educational, non-commercial)"}
+HEADERS = {"User-Agent": "ClassicLiteratureRAG research project (educational, non-commercial)"}
 
 # Ожидаемый минимальный размер HTML (байт) — грубая защита от заглушек/обрывов.
 # Реальные размеры по az.lib.ru: ПиН 1242k, Идиот 1517k, Бесы ~1500k, Фауст 533k.

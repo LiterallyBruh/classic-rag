@@ -1,4 +1,4 @@
-"""Streamlit-демо ClassicRAG.
+"""Streamlit-демо ClassicLiteratureRAG.
 
 Работает и без LLM-ключа: тогда показывает найденные фрагменты с адресами,
 а генерация ответа отключена (полезно для проверки retrieval и деплоя
@@ -29,8 +29,8 @@ EXAMPLES = [
     "Правда ли, что «красота спасёт мир» — слова Мышкина?",
 ]
 
-st.set_page_config(page_title="ClassicRAG", page_icon="📚")
-st.title("📚 ClassicRAG")
+st.set_page_config(page_title="ClassicLiteratureRAG", page_icon="📚")
+st.title("📚 ClassicLiteratureRAG")
 st.caption("Ответы по тексту классики — с цитатами и указанием главы. Без выдумок.")
 
 

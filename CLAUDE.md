@@ -1,4 +1,4 @@
-# CLAUDE.md — контекст проекта ClassicRAG
+# CLAUDE.md — контекст проекта ClassicLiteratureRAG
 
 ## Что это и зачем
 

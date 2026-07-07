@@ -116,7 +116,7 @@ def build() -> None:
     doc = SimpleDocTemplate(
         str(OUT), pagesize=A4,
         leftMargin=2 * cm, rightMargin=2 * cm, topMargin=1.6 * cm, bottomMargin=1.6 * cm,
-        title="ClassicRAG — описание проекта", author="Junior ML Contest",
+        title="ClassicLiteratureRAG — описание проекта", author="Junior ML Contest",
     )
     doc.build(story)
     print(f"OK: {OUT}")
