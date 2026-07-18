@@ -34,7 +34,7 @@ pdfmetrics.registerFontFamily(
 )
 
 BODY = ParagraphStyle(
-    "body", fontName="DejaVu", fontSize=9.5, leading=13, spaceAfter=5, alignment=4
+    "body", fontName="DejaVu", fontSize=9.5, leading=12.4, spaceAfter=4, alignment=4
 )
 H1 = ParagraphStyle(
     "h1", parent=BODY, fontName="DejaVu-Bold", fontSize=14, leading=17,
