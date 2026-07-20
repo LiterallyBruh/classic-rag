@@ -156,7 +156,7 @@ const shadow = () => ({ type: "outer", color: "000000", blur: 7, offset: 2, angl
   box(7.16, 1.35, 2.3, "GigaChat: ответ\nс цитатой и адресом\nили отказ", BERRY, WHITE);
   [2.14, 4.47, 6.8].forEach((x) => s.addText("→", { x, y: 1.65, w: 0.35, h: 0.4, fontSize: 20, color: ROSE, align: "center", margin: 0 }));
   s.addText([
-    { text: "Решения приняты по экспериментам (13 записей в docs/decisions.md):", options: { bold: true, breakLine: true, paraSpaceAfter: 8 } },
+    { text: "Решения приняты по экспериментам (14 записей в docs/decisions.md):", options: { bold: true, breakLine: true, paraSpaceAfter: 8 } },
     { text: "индекс — файлы, без векторной БД: на 10⁴ чанков numpy-перебор быстрее инфраструктуры", options: { bullet: true, breakLine: true, paraSpaceAfter: 7 } },
     { text: "RRF вместо взвешенной суммы — не требует калибровки шкал BM25 и косинуса", options: { bullet: true, breakLine: true, paraSpaceAfter: 7 } },
     { text: "структурные вопросы («чем заканчивается?») — мимо similarity-поиска: срез конца книги; класс найден на живом демо и закрыт итерацией", options: { bullet: true, breakLine: true, paraSpaceAfter: 7 } },
@@ -192,40 +192,52 @@ const shadow = () => ({ type: "outer", color: "000000", blur: 7, offset: 2, angl
 
   // ── 7. Импакт ───────────────────────────────────────────────────────────
   s = p.addSlide(); s.background = { color: WHITE };
-  title(s, "Импакт: тот же GigaChat — с RAG и без");
-  const mk = (v, good) => ({ text: v, options: { bold: true, color: good ? OK : BAD } });
-  s.addTable([
-    [th("Метрика (29 вопросов)"), th("LLM без RAG"), th("ClassicLiteratureRAG")],
-    ["Ответы с выдуманной цитатой", mk("27 / 29", false), mk("1 / 29", true)],
-    ["Цитаты дословно из текста", mk("0 / 27", false), mk("8 / 9", true)],
-    ["Ответ верен по сути", "10 / 29", "11 / 29"],
-    ["Верный номер главы", mk("2 / 15", false), mk("12 / 15", true)],
-    ["Честные отказы вместо вымысла", "—", mk("9 / 29", true)],
-  ], { x: 0.5, y: 1.15, w: 9.0, colW: [4.0, 2.3, 2.7], fontSize: 13, color: INK,
-       border: { pt: 0.5, color: "D8CFC4" }, align: "center",
-       margin: [0.05, 0.06, 0.05, 0.06] });
-  s.addText("Из чего состоят те же 29 ответов:", { x: 0.5, y: 3.62, w: 9, h: 0.35, fontSize: 13.5, bold: true, color: INK, margin: 0 });
+  title(s, "Импакт: тот же GigaChat — с текстом романа и без");
+  const impact = (x, from, to, cap) => {
+    s.addShape(p.shapes.ROUNDED_RECTANGLE, { x, y: 1.0, w: 2.85, h: 1.5, rectRadius: 0.09, fill: { color: TINT }, shadow: shadow() });
+    s.addText([
+      { text: from, options: { color: BAD } },
+      { text: "  →  ", options: { color: MUT } },
+      { text: to, options: { color: OK } },
+    ], { x, y: 1.06, w: 2.85, h: 0.75, align: "center", fontSize: 36, bold: true, fontFace: "Cambria", margin: 0 });
+    s.addText(cap, { x: x + 0.12, y: 1.82, w: 2.61, h: 0.62, align: "center", fontSize: 11, color: INK, margin: 0 });
+  };
+  impact(0.5, "27", "1", "ответов с цитатой, которой нет в тексте — из 29");
+  impact(3.58, "2", "12", "верных адресов главы — из 15 вопросов с адресом в эталоне");
+  impact(6.65, "0", "9", "честных отказов вместо вымысла — из 29");
+  s.addText("Из чего состоят те же 29 ответов:", { x: 0.5, y: 2.66, w: 9, h: 0.32, fontSize: 13, bold: true, color: INK, margin: 0 });
   const U = 7.0 / 29, BX = 2.3, BH = 0.42;
   const seg = (x, y, n, color, label, labelColor) => {
     s.addShape(p.shapes.RECTANGLE, { x, y, w: n * U, h: BH, fill: { color }, line: { color: WHITE, width: 0.75 } });
     if (label) s.addText(label, { x, y, w: n * U, h: BH, align: "center", valign: "middle", fontSize: 10.5, bold: true, color: labelColor, margin: 0 });
     return x + n * U;
   };
-  s.addText("LLM без RAG", { x: 0.5, y: 4.02, w: 1.7, h: 0.4, fontSize: 12, bold: true, color: INK, valign: "middle", margin: 0 });
-  let bx = seg(BX, 4.0, 27, BAD, "27 ответов с «цитатой» — все 27 выдуманы", WHITE);
-  bx = seg(bx, 4.0, 2, "C9BFB4", null);
-  s.addText("2 без цитат", { x: bx - 2 * U - 0.55, y: 4.44, w: 1.6, h: 0.25, fontSize: 9, color: MUT, align: "right", margin: 0 });
-  s.addText("ClassicLiteratureRAG", { x: 0.5, y: 4.82, w: 1.8, h: 0.4, fontSize: 12, bold: true, color: INK, valign: "middle", margin: 0 });
-  bx = seg(BX, 4.8, 8, OK, "8 дословных", WHITE);
+  s.addText([
+    { text: "GigaChat API", options: { bold: true, breakLine: true } },
+    { text: "без доступа к тексту", options: { fontSize: 9, color: MUT } },
+  ], { x: 0.5, y: 2.98, w: 1.75, h: 0.55, fontSize: 11, color: INK, valign: "middle", margin: 0 });
+  let bx = seg(BX, 3.05, 27, BAD, "27 ответов с «цитатой» — все 27 выдуманы", WHITE);
+  bx = seg(bx, 3.05, 2, "C9BFB4", null);
+  s.addText("2 без цитат", { x: bx - 2 * U - 0.55, y: 3.49, w: 1.6, h: 0.22, fontSize: 9, color: MUT, align: "right", margin: 0 });
+  s.addText([
+    { text: "ClassicLiteratureRAG", options: { bold: true, breakLine: true } },
+    { text: "тот же GigaChat + retrieval", options: { fontSize: 9, color: MUT } },
+  ], { x: 0.5, y: 3.78, w: 1.8, h: 0.55, fontSize: 11, color: INK, valign: "middle", margin: 0 });
+  bx = seg(BX, 3.85, 8, OK, "8 дословных", WHITE);
   const redX = bx;
-  bx = seg(bx, 4.8, 1, BAD, null);
-  bx = seg(bx, 4.8, 9, "C9BFB4", "9 без цитат", INK);
-  bx = seg(bx, 4.8, 9, "E5DED4", "9 отказов", MUT);
+  bx = seg(bx, 3.85, 1, BAD, null);
+  bx = seg(bx, 3.85, 9, "C9BFB4", "9 без цитат", INK);
+  bx = seg(bx, 3.85, 9, "E5DED4", "9 отказов", MUT);
   const ambX = bx;
-  bx = seg(bx, 4.8, 2, "EF9F27", null);
-  s.addText("1 сжатая цитата", { x: redX - 0.55, y: 5.24, w: 1.35, h: 0.25, fontSize: 9, color: BAD, margin: 0 });
-  s.addText("2 цензуры GigaChat", { x: ambX - 1.0, y: 5.24, w: 1.5, h: 0.25, fontSize: 9, color: MUT, align: "right", margin: 0 });
-  s.addNotes("Оценка импакта — измерение, а не опрос: тот же GigaChat с RAG и без на одних вопросах. Baseline вставил выдуманную цитату в 27 ответов из 29, у нас — один такой случай (сжатая цитата), и метрика его поймала. Знаменатели у строки «дословно» разные, потому что baseline «цитирует» всегда, а RAG — только при опоре на текст; поэтому первая строка приводит ту же разницу к общему знаменателю. Все метрики автоматические, сырые ответы сохранены — любую цифру можно проверить в репозитории.");
+  bx = seg(bx, 3.85, 2, "EF9F27", null);
+  s.addText("1 сжатая цитата", { x: redX - 0.55, y: 4.29, w: 1.35, h: 0.22, fontSize: 9, color: BAD, margin: 0 });
+  s.addText("2 цензуры GigaChat", { x: ambX - 1.0, y: 4.29, w: 1.5, h: 0.22, fontSize: 9, color: MUT, align: "right", margin: 0 });
+  s.addShape(p.shapes.ROUNDED_RECTANGLE, { x: 0.5, y: 4.68, w: 9.0, h: 0.6, rectRadius: 0.09, fill: { color: "F3E9E9" } });
+  s.addText([
+    { text: "По сути ответы верны одинаково — 10 и 11 из 29. ", options: {} },
+    { text: "Вклад RAG — не «умнее», а «без вымысла и проверяемо».", options: { bold: true, color: BERRY } },
+  ], { x: 0.7, y: 4.68, w: 8.6, h: 0.6, fontSize: 12.5, color: INK, align: "center", valign: "middle", margin: 0 });
+  s.addNotes("Импакт — измерение, а не опрос: тот же GigaChat, те же 29 вопросов; baseline — модель через API без доступа к тексту, наш вариант — плюс retrieval по роману. Три числа сверху: выдуманные цитаты 27→1, причём единственный случай у нас — сжатая настоящая цитата, и метрика его поймала; верные адреса 2→12 из 15; честные отказы 0→9. Полосы показывают состав всех 29 ответов — без выборочности. И честная рамка внизу: по сути ответы верны одинаково — RAG не добавляет модели знаний, он убирает вымысел и делает ответ проверяемым; для школьника перед ЕГЭ ложная цитата опаснее отказа. Если спросят про точность цитат там, где они есть: у baseline 0 из 27 дословных, у нас 8 из 9. Все метрики автоматические, сырые ответы в eval/baseline_raw.json.");
 
   // ── 8. Живой пример из прогона ──────────────────────────────────────────
   s = p.addSlide(); s.background = { color: WHITE };
@@ -233,7 +245,7 @@ const shadow = () => ({ type: "outer", color: "000000", blur: 7, offset: 2, angl
   s.addText("«Кто говорит „Если нет бога, то я бог“?» — эталон: Кириллов, часть 3, глава 6", {
     x: 0.5, y: 0.95, w: 9, h: 0.4, fontSize: 14, italic: true, color: MUT, margin: 0 });
   s.addShape(p.shapes.ROUNDED_RECTANGLE, { x: 0.5, y: 1.5, w: 4.42, h: 2.5, rectRadius: 0.09, fill: { color: "F3E9E9" }, shadow: shadow() });
-  s.addText("LLM без RAG", { x: 0.75, y: 1.68, w: 3.9, h: 0.35, fontSize: 13.5, bold: true, color: BAD, margin: 0 });
+  s.addText("GigaChat API без доступа к тексту", { x: 0.75, y: 1.68, w: 3.9, h: 0.35, fontSize: 12.5, bold: true, color: BAD, margin: 0 });
   s.addText("«Эти слова произносит Ставрогин. Цитата: „— Если нет Бога, то я Бог! — вдруг крикнул он громко и с восторгом“. Часть I, глава 1.»", {
     x: 0.75, y: 2.1, w: 3.9, h: 1.75, fontSize: 12.5, color: INK, margin: 0 });
   s.addShape(p.shapes.ROUNDED_RECTANGLE, { x: 5.08, y: 1.5, w: 4.42, h: 2.5, rectRadius: 0.09, fill: { color: "EBF1E4" }, shadow: shadow() });
@@ -246,9 +258,11 @@ const shadow = () => ({ type: "outer", color: "000000", blur: 7, offset: 2, angl
   };
   verdict(0.55, "no", "герой не тот · такой цитаты в романе нет · «часть I, глава 1» — мимо", BAD);
   verdict(5.13, "ok", "герой верен · цитата дословна · адрес совпал с золотой разметкой", OK);
-  s.addText("Ответы взяты из eval/baseline_raw.json как есть — каждый можно перепроверить в репозитории.", {
-    x: 0.5, y: 4.95, w: 9, h: 0.35, fontSize: 11, italic: true, color: MUT, margin: 0 });
-  s.addNotes("Один живой пример вместо тысячи цифр. Вопрос из нашего eval-набора, ответы без правок. Baseline уверенно называет Ставрогина, сочиняет цитату с восклицанием и даёт несуществующий адрес — красиво, но всё неправда, и школьник это не распознает. Наша система: Кириллов, дословная цитата, точный адрес вплоть до раздела. Проверяемость — это и есть продукт.");
+  s.addText([
+    { text: "Ответы взяты из eval/baseline_raw.json как есть — каждый можно перепроверить в репозитории.", options: { breakLine: true } },
+    { text: "Веб-версия GigaChat — не «без RAG»: в ней встроен поиск по интернету; baseline — чистая модель через API.", options: {} },
+  ], { x: 0.5, y: 4.82, w: 9, h: 0.62, fontSize: 10, italic: true, color: MUT, margin: 0 });
+  s.addNotes("Один живой пример вместо тысячи цифр. Вопрос из нашего eval-набора, ответы без правок. Baseline уверенно называет Ставрогина, сочиняет цитату с восклицанием и даёт несуществующий адрес — красиво, но всё неправда, и школьник это не распознает. Наша система: Кириллов, дословная цитата, точный адрес вплоть до раздела. Проверяемость — это и есть продукт. ЕСЛИ СПРОСЯТ «а веб-ГигаЧат отвечает верно»: веб-версия — не «без RAG», в неё встроен поиск по интернету (в нашей проверке ответ ссылался на lifehacker.ru) — что само по себе подтверждает гипотезу: без опоры модель выдумывает. Но даже с веб-поиском адрес неверен — часть 2, глава 5 вместо части 3, главы 6 (проверяемо по корпусу) — и дословной цитаты из романа нет: пересказы против первоисточника. И одиночный ответ — анекдот: модель стохастична, поэтому мы мерим 29 вопросов и храним сырые ответы.");
 
   // ── 9. Инженерия, продукт, AI ───────────────────────────────────────────
   s = p.addSlide(); s.background = { color: WHITE };
@@ -268,7 +282,7 @@ const shadow = () => ({ type: "outer", color: "000000", blur: 7, offset: 2, angl
   card(5.08, 1.05, 4.42, 2.15, "robot", "AI-инструменты", [
     "разработка в паре с Claude Code",
     "каждый шаг — в docs/ai_usage_log.md с проверкой результата",
-    "13 дизайн-решений с аргументацией в docs/decisions.md",
+    "14 дизайн-решений с аргументацией в docs/decisions.md",
   ]);
   card(0.5, 3.4, 4.42, 1.75, "fb", "Продукт живёт", [
     "MVP задеплоен, доступен жюри",
@@ -291,7 +305,7 @@ const shadow = () => ({ type: "outer", color: "000000", blur: 7, offset: 2, angl
     s.addText(cap, { x, y: 2.5, w: 2.8, h: 0.85, align: "center", valign: "top",
       fontSize: 12, color: "D9C7CE" });
   };
-  fin(0.65, "8 / 9", "дословных цитат\n(у LLM без RAG — 0/27)");
+  fin(0.65, "27 → 1", "выдуманных цитат из 29\n(GigaChat: без текста → с ним)");
   fin(3.6, "+70 %", "к точности retrieval\nот реранкера");
   fin(6.55, "650 тыс.", "слов в корпусе,\nготовом к расширению");
   s.addText([
@@ -299,7 +313,7 @@ const shadow = () => ({ type: "outer", color: "000000", blur: 7, offset: 2, angl
     { text: "Демо: huggingface.co/spaces/ArtemResearch/ClassicLiteratureRAG", options: { bold: true } },
   ], { x: 0.7, y: 3.65, w: 8.6, h: 1.0, align: "center", fontSize: 14, color: CREAM });
   s.addText("Спасибо! Вопросы?", { x: 0.7, y: 4.8, w: 8.6, h: 0.5, align: "center", fontSize: 18, bold: true, color: WHITE });
-  s.addNotes("Итого: система с проверяемыми ответами уже задеплоена и работает. 8 из 9 дословных цитат против нуля у чистой LLM. Дальше — атрибуция реплик, faithfulness-метрика и расширение корпуса: пайплайн к этому готов. Спасибо, готов к вопросам!");
+  s.addNotes("Итого: система с проверяемыми ответами уже задеплоена и работает. 27 выдуманных цитат из 29 у чистой модели — против одной у нас, и та сжатая настоящая. Дальше — атрибуция реплик, faithfulness-метрика и расширение корпуса: пайплайн к этому готов. Спасибо, готов к вопросам!");
 
   await p.writeFile({ fileName: path.join(__dirname, "..", "docs", "presentation.pptx") });
   console.log("OK: docs/presentation.pptx");
