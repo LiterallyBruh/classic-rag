@@ -5,3 +5,11 @@ data/
 .venv/
 docs/description.pdf
 docs/presentation.pptx
+
+# OS / IDE / tool junk
+.DS_Store
+~$*
+.pytest_cache/
+.ruff_cache/
+.ipynb_checkpoints/
+.claude/
